@@ -1,0 +1,485 @@
+CC=arm-none-eabi-gcc
+CXX=arm-none-eabi-g++
+AR=arm-none-eabi-ar
+OBJCOPY=arm-none-eabi-objcopy
+
+###########################################
+
+vpath %.c flight
+vpath %.cpp flight
+
+
+DEFINES  = -DUSE_INPUT_LPF -DUSE_GIMBAL_LPF -DUSE_GIMBAL_FF -DDIAG_TASKS -DSTM32F4XX -DSTM32F4 -DPIOS_TARGET_PROVIDES_FAST_HEAP -DSTM32F40_41xxx -DSYSCLK_FREQ=168000000 -DHSE_VALUE=8000000 -DUSE_STDPERIPH_DRIVER -DARM_MATH_CM4 -D__FPU_PRESENT=1  -DMODULE_SENSORS_BUILTIN  -DMODULE_STATEESTIMATION_BUILTIN  -DMODULE_AIRSPEED_BUILTIN  -DMODULE_STABILIZATION_BUILTIN  -DMODULE_MANUALCONTROL_BUILTIN  -DMODULE_RECEIVER_BUILTIN  -DMODULE_ACTUATOR_BUILTIN  -DMODULE_GPS_BUILTIN  -DMODULE_TXPID_BUILTIN  -DMODULE_CAMERASTAB_BUILTIN  -DMODULE_CAMERACONTROL_BUILTIN  -DMODULE_BATTERY_BUILTIN  -DMODULE_FIRMWAREIAP_BUILTIN  -DMODULE_RADIO_BUILTIN  -DMODULE_PATHPLANNER_BUILTIN  -DMODULE_PATHFOLLOWER_BUILTIN  -DMODULE_OSDOUTOUT_BUILTIN  -DMODULE_LOGGING_BUILTIN  -DMODULE_TELEMETRY_BUILTIN  -DMODULE_NOTIFY_BUILTIN  -DHAS_AUTOTUNE_MODULE  -DHAS_COMUSBBRIDGE_MODULE  -DHAS_UAVOHOTTBRIDGE_MODULE  -DHAS_UAVOMSPBRIDGE_MODULE  -DHAS_UAVOMAVLINKBRIDGE_MODULE  -DHAS_UAVOFRSKYSENSORHUBBRIDGE_MODULE  -DHAS_SENSORS_MODULE  -DHAS_STATEESTIMATION_MODULE  -DHAS_AIRSPEED_MODULE  -DHAS_STABILIZATION_MODULE  -DHAS_MANUALCONTROL_MODULE  -DHAS_RECEIVER_MODULE  -DHAS_ACTUATOR_MODULE  -DHAS_GPS_MODULE  -DHAS_TXPID_MODULE  -DHAS_CAMERASTAB_MODULE  -DHAS_CAMERACONTROL_MODULE  -DHAS_BATTERY_MODULE  -DHAS_FIRMWAREIAP_MODULE  -DHAS_RADIO_MODULE  -DHAS_PATHPLANNER_MODULE  -DHAS_PATHFOLLOWER_MODULE  -DHAS_OSDOUTOUT_MODULE  -DHAS_LOGGING_MODULE  -DHAS_TELEMETRY_MODULE  -DHAS_NOTIFY_MODULE -DUSE_STM32F4xx_RM -DBOARD_TYPE=0x09 -DBOARD_REVISION=0x03 -DHW_TYPE=0x00 -DBOOTLOADER_VERSION=0x06 -DFW_BANK_BASE=0x08020000   -DFW_BANK_SIZE=0x000A0000   -DFW_DESC_SIZE=0x00000064 -DBL_BANK_BASE=0x08000000   -DBL_BANK_SIZE=0x00008000   -DBL_DESC_SIZE= -DEE_BANK_BASE=0x08008000   -DEE_BANK_SIZE=0x00008000
+
+OPT = -Og -gdwarf
+
+CFLAGS  = -mthumb -ffast-math  -mcpu=cortex-m4 -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
+CFLAGS += $(OPT)
+CFLAGS += -mapcs-frame -fomit-frame-pointer
+CFLAGS += -Wall -Wextra -Wfloat-equal -Wdouble-promotion -Wshadow -Werror
+CFLAGS += -fdata-sections -ffunction-sections
+CFLAGS += -std=gnu99 -Wunsuffixed-float-constants -DPIOS_ENABLE_CXX
+
+CPPFLAGS  = -mthumb -ffast-math  -mcpu=cortex-m4 -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
+CPPFLAGS += $(OPT)
+CPPFLAGS += -mapcs-frame -fomit-frame-pointer
+CPPFLAGS += -Wall -Wextra -Wfloat-equal -Wdouble-promotion -Wshadow -Werror
+CPPFLAGS += -fdata-sections -ffunction-sections
+CPPFLAGS += -DPIOS_ENABLE_CXX -fno-rtti -fno-exceptions -std=c++11 -fno-use-cxa-atexit
+
+INCLUDES  = \
+-I./flight/libraries/rscode/ \
+-I./flight/pios/common/libraries/FreeRTOS//Source/include \
+-I./flight/pios/stm32f4xx/inc \
+-I./flight/pios/common/libraries/CMSIS/Include \
+-I./flight/pios/stm32f4xx/libraries/CMSIS/Device/ST/STM32F4xx/Include \
+-I./flight/pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/inc \
+-I./flight/pios/stm32f4xx//libraries/STM32_USB_OTG_Driver/inc \
+-I./flight/pios/stm32f4xx//libraries/STM32_USB_Device_Library/Core/inc \
+-I./flight/pios/common/libraries/FreeRTOS//Source/portable/GCC/ARM_CM4F \
+-I./flight/pios/common/libraries/msheap/ \
+-I./flight/pios \
+-I./flight/pios/inc \
+-I./flight/targets/boards/revolution \
+-I./flight/targets/boards/revolution/firmware \
+-I./flight/libraries/inc \
+-I./flight/pios/common \
+-I./flight/targets/boards/revolution/firmware/inc \
+-I./flight/libraries/math \
+-I./flight/libraries/pid \
+-I./flight/uavobjects/inc \
+-I./flight/uavtalk/inc \
+-I./build/firmware/uavobjects \
+-I./flight/libraries/mavlink/v1.0/common \
+-I./flight/modules/AutoTune/inc \
+-I./flight/modules/ComUsbBridge/inc \
+-I./flight/modules/UAVOHottBridge/inc \
+-I./flight/modules/UAVOMSPBridge/inc \
+-I./flight/modules/UAVOMavlinkBridge/inc \
+-I./flight/modules/UAVOFrSKYSensorHubBridge/inc \
+-I./flight/modules/Sensors/inc \
+-I./flight/modules/StateEstimation/inc \
+-I./flight/modules/Airspeed/inc \
+-I./flight/modules/Stabilization/inc \
+-I./flight/modules/ManualControl/inc \
+-I./flight/modules/Receiver/inc \
+-I./flight/modules/Actuator/inc \
+-I./flight/modules/GPS/inc \
+-I./flight/modules/TxPID/inc \
+-I./flight/modules/CameraStab/inc \
+-I./flight/modules/CameraControl/inc \
+-I./flight/modules/Battery/inc \
+-I./flight/modules/FirmwareIAP/inc \
+-I./flight/modules/Radio/inc \
+-I./flight/modules/PathPlanner/inc \
+-I./flight/modules/PathFollower/inc \
+-I./flight/modules/Osd/osdoutout/inc \
+-I./flight/modules/Logging/inc \
+-I./flight/modules/Telemetry/inc \
+-I./flight/modules/Notify/inc \
+-I./flight/modules/System/inc \
+-I.
+
+CPPSRC = \
+targets/boards/revolution/firmware/revolution.cpp \
+libraries/pid/pidcontroldown.cpp \
+libraries/mini_cpp.cpp \
+modules/Stabilization/altitudeloop.cpp \
+modules/PathFollower/fixedwingautotakeoffcontroller.cpp \
+modules/PathFollower/fixedwingflycontroller.cpp \
+modules/PathFollower/fixedwinglandcontroller.cpp \
+modules/PathFollower/grounddrivecontroller.cpp \
+modules/PathFollower/pathfollower.cpp \
+modules/PathFollower/pathfollowercontrol.cpp \
+modules/PathFollower/pidcontrolne.cpp \
+modules/PathFollower/vtolautotakeoffcontroller.cpp \
+modules/PathFollower/vtolautotakeofffsm.cpp \
+modules/PathFollower/vtolbrakecontroller.cpp \
+modules/PathFollower/vtolbrakefsm.cpp \
+modules/PathFollower/vtolflycontroller.cpp \
+modules/PathFollower/vtollandcontroller.cpp \
+modules/PathFollower/vtollandfsm.cpp \
+modules/PathFollower/vtolvelocitycontroller.cpp \
+
+CSRC = \
+libraries/notification.c \
+targets/boards/revolution/pios_usb_board_data.c \
+modules/System/systemmod.c \
+targets/boards/revolution/firmware/pios_board.c \
+libraries/alarms.c \
+libraries/instrumentation.c \
+uavtalk/uavtalk.c \
+uavobjects/uavobjectmanager.c \
+uavobjects/uavobjectpersistence.c \
+uavobjects/eventdispatcher.c \
+pios/common/pios_flashfs_logfs.c \
+pios/common/pios_flash_jedec.c \
+libraries/paths.c \
+libraries/plans.c \
+libraries/WorldMagModel.c \
+libraries/insgps13state.c \
+libraries/auxmagsupport.c \
+libraries/lednotification.c \
+libraries/sha1.c \
+build/firmware/uavobjects/statusgrounddrive.c \
+build/firmware/uavobjects/statusvtolautotakeoff.c \
+build/firmware/uavobjects/pidstatus.c \
+build/firmware/uavobjects/statusvtolland.c \
+build/firmware/uavobjects/vtolselftuningstats.c \
+build/firmware/uavobjects/accelgyrosettings.c \
+build/firmware/uavobjects/accessorydesired.c \
+build/firmware/uavobjects/actuatorcommand.c \
+build/firmware/uavobjects/actuatordesired.c \
+build/firmware/uavobjects/actuatorsettings.c \
+build/firmware/uavobjects/attitudesettings.c \
+build/firmware/uavobjects/attitudestate.c \
+build/firmware/uavobjects/gyrostate.c \
+build/firmware/uavobjects/gyrosensor.c \
+build/firmware/uavobjects/accelstate.c \
+build/firmware/uavobjects/accelsensor.c \
+build/firmware/uavobjects/magsensor.c \
+build/firmware/uavobjects/auxmagsensor.c \
+build/firmware/uavobjects/auxmagsettings.c \
+build/firmware/uavobjects/magstate.c \
+build/firmware/uavobjects/barosensor.c \
+build/firmware/uavobjects/airspeedsensor.c \
+build/firmware/uavobjects/airspeedsettings.c \
+build/firmware/uavobjects/airspeedstate.c \
+build/firmware/uavobjects/debuglogsettings.c \
+build/firmware/uavobjects/debuglogcontrol.c \
+build/firmware/uavobjects/debuglogstatus.c \
+build/firmware/uavobjects/debuglogentry.c \
+build/firmware/uavobjects/flightbatterysettings.c \
+build/firmware/uavobjects/firmwareiapobj.c \
+build/firmware/uavobjects/flightbatterystate.c \
+build/firmware/uavobjects/flightplancontrol.c \
+build/firmware/uavobjects/flightplansettings.c \
+build/firmware/uavobjects/flightplanstatus.c \
+build/firmware/uavobjects/flighttelemetrystats.c \
+build/firmware/uavobjects/gcstelemetrystats.c \
+build/firmware/uavobjects/gcsreceiver.c \
+build/firmware/uavobjects/gpspositionsensor.c \
+build/firmware/uavobjects/gpssatellites.c \
+build/firmware/uavobjects/gpstime.c \
+build/firmware/uavobjects/gpsvelocitysensor.c \
+build/firmware/uavobjects/gpssettings.c \
+build/firmware/uavobjects/gpsextendedstatus.c \
+build/firmware/uavobjects/fixedwingpathfollowersettings.c \
+build/firmware/uavobjects/fixedwingpathfollowerstatus.c \
+build/firmware/uavobjects/vtolpathfollowersettings.c \
+build/firmware/uavobjects/groundpathfollowersettings.c \
+build/firmware/uavobjects/homelocation.c \
+build/firmware/uavobjects/i2cstats.c \
+build/firmware/uavobjects/manualcontrolcommand.c \
+build/firmware/uavobjects/manualcontrolsettings.c \
+build/firmware/uavobjects/flightmodesettings.c \
+build/firmware/uavobjects/mixersettings.c \
+build/firmware/uavobjects/mixerstatus.c \
+build/firmware/uavobjects/nedaccel.c \
+build/firmware/uavobjects/objectpersistence.c \
+build/firmware/uavobjects/oplinkreceiver.c \
+build/firmware/uavobjects/pathaction.c \
+build/firmware/uavobjects/pathdesired.c \
+build/firmware/uavobjects/pathplan.c \
+build/firmware/uavobjects/pathstatus.c \
+build/firmware/uavobjects/pathsummary.c \
+build/firmware/uavobjects/positionstate.c \
+build/firmware/uavobjects/ratedesired.c \
+build/firmware/uavobjects/ekfconfiguration.c \
+build/firmware/uavobjects/ekfstatevariance.c \
+build/firmware/uavobjects/revocalibration.c \
+build/firmware/uavobjects/revosettings.c \
+build/firmware/uavobjects/sonaraltitude.c \
+build/firmware/uavobjects/stabilizationdesired.c \
+build/firmware/uavobjects/stabilizationsettings.c \
+build/firmware/uavobjects/stabilizationsettingsbank1.c \
+build/firmware/uavobjects/stabilizationsettingsbank2.c \
+build/firmware/uavobjects/stabilizationsettingsbank3.c \
+build/firmware/uavobjects/stabilizationstatus.c \
+build/firmware/uavobjects/stabilizationbank.c \
+build/firmware/uavobjects/systemalarms.c \
+build/firmware/uavobjects/systemsettings.c \
+build/firmware/uavobjects/systemstats.c \
+build/firmware/uavobjects/taskinfo.c \
+build/firmware/uavobjects/callbackinfo.c \
+build/firmware/uavobjects/velocitystate.c \
+build/firmware/uavobjects/velocitydesired.c \
+build/firmware/uavobjects/watchdogstatus.c \
+build/firmware/uavobjects/flightstatus.c \
+build/firmware/uavobjects/hwsettings.c \
+build/firmware/uavobjects/receiveractivity.c \
+build/firmware/uavobjects/receiverstatus.c \
+build/firmware/uavobjects/cameradesired.c \
+build/firmware/uavobjects/camerastabsettings.c \
+build/firmware/uavobjects/cameracontrolsettings.c \
+build/firmware/uavobjects/cameracontrolactivity.c \
+build/firmware/uavobjects/altitudeholdsettings.c \
+build/firmware/uavobjects/oplinksettings.c \
+build/firmware/uavobjects/oplinkstatus.c \
+build/firmware/uavobjects/altitudefiltersettings.c \
+build/firmware/uavobjects/altitudeholdstatus.c \
+build/firmware/uavobjects/waypoint.c \
+build/firmware/uavobjects/waypointactive.c \
+build/firmware/uavobjects/poilocation.c \
+build/firmware/uavobjects/poilearnsettings.c \
+build/firmware/uavobjects/mpugyroaccelsettings.c \
+build/firmware/uavobjects/txpidsettings.c \
+build/firmware/uavobjects/txpidstatus.c \
+build/firmware/uavobjects/hottbridgesettings.c \
+build/firmware/uavobjects/hottbridgestatus.c \
+build/firmware/uavobjects/takeofflocation.c \
+build/firmware/uavobjects/perfcounter.c \
+build/firmware/uavobjects/systemidentsettings.c \
+build/firmware/uavobjects/systemidentstate.c \
+libraries/rscode/berlekamp.c \
+libraries/rscode/crcgen.c \
+libraries/rscode/galois.c \
+libraries/rscode/rs.c \
+pios/common/libraries/FreeRTOS/Source/croutine.c \
+pios/common/libraries/FreeRTOS/Source/event_groups.c \
+pios/common/libraries/FreeRTOS/Source/list.c \
+pios/common/libraries/FreeRTOS/Source/openocd.c \
+pios/common/libraries/FreeRTOS/Source/queue.c \
+pios/common/libraries/FreeRTOS/Source/tasks.c \
+pios/common/libraries/FreeRTOS/Source/timers.c \
+pios/stm32f4xx/pios_adc.c \
+pios/stm32f4xx/pios_bkp.c \
+pios/stm32f4xx/pios_bl_helper.c \
+pios/stm32f4xx/pios_debug.c \
+pios/stm32f4xx/pios_delay.c \
+pios/stm32f4xx/pios_exti.c \
+pios/stm32f4xx/pios_flash_internal.c \
+pios/stm32f4xx/pios_gpio.c \
+pios/stm32f4xx/pios_i2c.c \
+pios/stm32f4xx/pios_irq.c \
+pios/stm32f4xx/pios_overo.c \
+pios/stm32f4xx/pios_ppm.c \
+pios/stm32f4xx/pios_pwm.c \
+pios/stm32f4xx/pios_rtc.c \
+pios/stm32f4xx/pios_spi.c \
+pios/stm32f4xx/pios_sys.c \
+pios/stm32f4xx/pios_tim.c \
+pios/stm32f4xx/pios_usart.c \
+pios/stm32f4xx/pios_usb.c \
+pios/stm32f4xx/pios_usb_cdc.c \
+pios/stm32f4xx/pios_usb_hid.c \
+pios/stm32f4xx/pios_usbhook.c \
+pios/stm32f4xx/pios_wdg.c \
+pios/stm32f4xx/pios_ws2811.c \
+pios/stm32f4xx/startup.c \
+pios/stm32f4xx/vectors_stm32f4xx.c \
+pios/stm32f4xx/libraries/CMSIS/Device/ST/STM32F4xx/Source/revolution/system_stm32f4xx.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/misc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_adc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_can.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_crc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_cryp.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_cryp_aes.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_cryp_des.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_cryp_tdes.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dac.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dbgmcu.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dcmi.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma2d.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_exti.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_flash.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_flash_ramfunc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_gpio.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_hash.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_hash_md5.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_hash_sha1.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_i2c.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_iwdg.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_ltdc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_pwr.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rcc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rng.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rtc.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_sdio.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_spi.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_syscfg.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_tim.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_usart.c \
+pios/stm32f4xx/libraries/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_wwdg.c \
+pios/stm32f4xx/libraries/STM32_USB_OTG_Driver/src/usb_core.c \
+pios/stm32f4xx/libraries/STM32_USB_OTG_Driver/src/usb_dcd.c \
+pios/stm32f4xx/libraries/STM32_USB_OTG_Driver/src/usb_dcd_int.c \
+pios/stm32f4xx/libraries/STM32_USB_Device_Library/Core/src/usbd_core.c \
+pios/stm32f4xx/libraries/STM32_USB_Device_Library/Core/src/usbd_ioreq.c \
+pios/stm32f4xx/libraries/STM32_USB_Device_Library/Core/src/usbd_req.c \
+pios/common/libraries/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
+pios/common/libraries/msheap/msheap.c \
+pios/common/libraries/msheap/pios_msheap.c \
+pios/common/pios_adxl345.c \
+pios/common/pios_bma180.c \
+pios/common/pios_bmp085.c \
+pios/common/pios_etasv3.c \
+pios/common/pios_gcsrcvr.c \
+pios/common/pios_hcsr04.c \
+pios/common/pios_hmc5843.c \
+pios/common/pios_hmc5x83.c \
+pios/common/pios_i2c_esc.c \
+pios/common/pios_l3gd20.c \
+pios/common/pios_mpu6000.c \
+pios/common/pios_mpu9250.c \
+pios/common/pios_mpxv.c \
+pios/common/pios_ms4525do.c \
+pios/common/pios_ms56xx.c \
+pios/common/pios_bmp280.c \
+pios/common/pios_oplinkrcvr.c \
+pios/common/pios_video.c \
+pios/common/pios_wavplay.c \
+pios/common/pios_rfm22b.c \
+pios/common/pios_rfm22b_com.c \
+pios/common/pios_rcvr.c \
+pios/common/pios_dsm.c \
+pios/common/pios_sbus.c \
+pios/common/pios_hott.c \
+pios/common/pios_srxl.c \
+pios/common/pios_exbus.c \
+pios/common/pios_ibus.c \
+pios/common/pios_sdcard.c \
+pios/common/pios_sensors.c \
+pios/common/pios_servo.c \
+pios/common/pios_openlrs.c \
+pios/common/pios_openlrs_rcvr.c \
+pios/common/pios_board_io.c \
+pios/common/pios_board_sensors.c \
+libraries/sanitycheck.c \
+libraries/CoordinateConversions.c \
+libraries/math/sin_lookup.c \
+libraries/math/pid.c \
+pios/common/pios_debuglog.c \
+pios/common/pios_iap.c \
+pios/common/pios_com.c \
+pios/common/pios_com_msg.c \
+pios/common/pios_crc.c \
+pios/common/pios_deltatime.c \
+pios/common/pios_led.c \
+pios/common/pios_semaphore.c \
+pios/common/pios_thread.c \
+pios/common/pios_usb_desc_hid_cdc.c \
+pios/common/pios_usb_desc_hid_only.c \
+pios/common/pios_usb_util.c \
+pios/common/pios_task_monitor.c \
+pios/common/pios_callbackscheduler.c \
+pios/common/pios_notify.c \
+pios/common/pios_instrumentation.c \
+pios/common/pios_mem.c \
+libraries/fifo_buffer.c \
+libraries/math/mathmisc.c \
+libraries/math/butterworth.c \
+libraries/printf-stdarg.c \
+libraries/optypes.c \
+modules/Sensors/sensors.c \
+modules/StateEstimation/filterair.c \
+modules/StateEstimation/filteraltitude.c \
+modules/StateEstimation/filterbaro.c \
+modules/StateEstimation/filtercf.c \
+modules/StateEstimation/filterekf.c \
+modules/StateEstimation/filterlla.c \
+modules/StateEstimation/filtermag.c \
+modules/StateEstimation/filterstationary.c \
+modules/StateEstimation/filtervelocity.c \
+modules/StateEstimation/stateestimation.c \
+modules/Airspeed/airspeed.c \
+modules/Airspeed/airspeedalarm.c \
+modules/Airspeed/baro_airspeed_etasv3.c \
+modules/Airspeed/baro_airspeed_mpxv.c \
+modules/Airspeed/baro_airspeed_ms4525do.c \
+modules/Airspeed/imu_airspeed.c \
+modules/Stabilization/cruisecontrol.c \
+modules/Stabilization/innerloop.c \
+modules/Stabilization/outerloop.c \
+modules/Stabilization/stabilization.c \
+modules/Stabilization/virtualflybar.c \
+modules/ManualControl/armhandler.c \
+modules/ManualControl/manualcontrol.c \
+modules/ManualControl/manualhandler.c \
+modules/ManualControl/pathfollowerhandler.c \
+modules/ManualControl/pathplannerhandler.c \
+modules/ManualControl/stabilizedhandler.c \
+modules/ManualControl/takeofflocationhandler.c \
+modules/Receiver/receiver.c \
+modules/Actuator/actuator.c \
+modules/GPS/DJI.c \
+modules/GPS/GPS.c \
+modules/GPS/NMEA.c \
+modules/GPS/UBX.c \
+modules/GPS/ubx_autoconfig.c \
+modules/TxPID/txpid.c \
+modules/CameraStab/camerastab.c \
+modules/CameraControl/cameracontrol.c \
+modules/Battery/battery.c \
+modules/FirmwareIAP/firmwareiap.c \
+modules/PathPlanner/pathplanner.c \
+modules/Logging/Logging.c \
+modules/Telemetry/telemetry.c \
+modules/Notify/notify.c \
+modules/AutoTune/autotune.c \
+modules/ComUsbBridge/ComUsbBridge.c \
+modules/UAVOHottBridge/uavohottbridge.c \
+modules/UAVOMSPBridge/UAVOMSPBridge.c \
+modules/UAVOMavlinkBridge/UAVOMavlinkBridge.c \
+modules/UAVOFrSKYSensorHubBridge/UAVOFrSKYSensorHubBridge.c
+
+COBJS  = $(addprefix objs/,$(CSRC:.c=.o))
+CPPOBJS += $(addprefix objs/,$(CPPSRC:.cpp=.o))
+
+CDEPS  = $(addprefix deps/,$(CSRC:.c=.d))
+CPPDEPS += $(addprefix deps/,$(CPPSRC:.cpp=.d))
+
+.PHONY: all clean elfclean
+
+all: fw_revolution.elf
+
+# -include $(CDEPS)
+# -include $(CPPDEPS)
+
+# seven core automatic variables:
+# $@ - filename representing the target.
+# $% - filename element of an archive member specification.
+# $< - filename of the first prerequisite.
+# $? - names of all prerequisites that are newer than the target, separated by spaces
+# $^ - filenames of all the prerequisites, separated by spaces
+# $+ - filenames of prerequisites separated by spaces includes duplicates
+# $* - The stem of the target filename (typically filename without suffix)
+
+# return only directory portion of the value by appending “D” to the symbol, $(@D), $(<D), etc.
+# return only file portion of the value by appending "F" to the symbol: $(@F), $(<F), etc.
+
+dirs:
+	mkdir -p deps objs
+	# touch dirs
+
+
+#	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) -c -o objs/$(*F).o $< -MD -MP -MF deps/$(*F).d
+objs/%.o : %.c dirs
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) -c -o objs/$*.o $< -MD -MP -MF deps/$(*F).d
+
+
+#	$(CXX) $(CPPFLAGS) $(DEFINES) $(INCLUDES) -c -o objs/$(*F).o $< -MD -MP -MF deps/$(*F).d
+objs/%.o : %.cpp dirs
+	mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(DEFINES) $(INCLUDES) -c -o objs/$*.o $< -MD -MP -MF deps/$(*F).d
+
+LDFILES = -T./flight/pios/stm32f4xx/link_STM32F4xx_RM_fw_memory.ld -T./flight/pios/stm32f4xx/link_STM32F4xx_RM_sections.ld -nostartfiles
+LDFLAGS1 = -Wl,--warn-common,--fatal-warnings,--sort-common,--sort-section=alignment,--gc-sections
+LDFLAGS2 = -lm -lc -lgcc -Wl,-static
+
+fw_revolution.elf: $(CPPOBJS) $(COBJS)
+	$(file >$@.input_files) $(foreach O,$^,$(file >>$@.input_files,$O))	
+	$(CXX) $(CPPFLAGS) $(DEFINES) $(INCLUDES) @$@.input_files --output $@ $(LDFILES) $(LDFLAGS1) -Wl,-Map=$@.map,--cref $(LDFLAGS2)
+	size $@
+	$(OBJCOPY) -O ihex $@ $(basename $@).hex
+
+clean:
+	rm -f dirs
+	rm -f *.elf *.input_files *.map *.hex
+	rm -rf objs
+	rm -rf deps
+
+elfclean:
+	rm -f *.elf *.input_files *.map *.hex
