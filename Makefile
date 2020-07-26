@@ -27,6 +27,10 @@ CPPFLAGS += -Wall -Wextra -Wfloat-equal -Wdouble-promotion -Wshadow -Werror
 CPPFLAGS += -fdata-sections -ffunction-sections
 CPPFLAGS += -DPIOS_ENABLE_CXX -fno-rtti -fno-exceptions -std=c++11 -fno-use-cxa-atexit
 
+LDFILES = -T./flight/pios/stm32f4xx/link_STM32F4xx_RM_fw_memory.ld -T./flight/pios/stm32f4xx/link_STM32F4xx_RM_sections.ld
+LDFLAGS1 = -nostartfiles -Wl,--warn-common,--fatal-warnings,--sort-common,--sort-section=alignment,--gc-sections
+LDFLAGS2 = -lm -lc -lgcc -Wl,-static
+
 INCLUDES  = \
 -I./flight/libraries/rscode/ \
 -I./flight/pios/common/libraries/FreeRTOS//Source/include \
@@ -128,10 +132,6 @@ objs/%.o : %.c dirs
 objs/%.o : %.cpp dirs
 	mkdir -p $(@D)
 	$(CXX) $(CPPFLAGS) $(DEFINES) $(INCLUDES) -c -o objs/$*.o $< -MD -MP -MF deps/$(*F).d
-
-LDFILES = -T./flight/pios/stm32f4xx/link_STM32F4xx_RM_fw_memory.ld -T./flight/pios/stm32f4xx/link_STM32F4xx_RM_sections.ld -nostartfiles
-LDFLAGS1 = -Wl,--warn-common,--fatal-warnings,--sort-common,--sort-section=alignment,--gc-sections
-LDFLAGS2 = -lm -lc -lgcc -Wl,-static
 
 fw_revolution.elf: $(CPPOBJS) $(COBJS)
 	$(file >$@.input_files) $(foreach O,$^,$(file >>$@.input_files,$O))	
